@@ -10,7 +10,7 @@ build-backend = "setuptools.build_meta"
 name = "biblearn"
 version = "0.0.1"
 description = ""
-authors = ["seth.henshaw@gmail.com"]
+authors = ["Seth Henshaw <seth.henshaw@gmail.com>"]
 
 [tool.poetry.dependencies]
 python = "*"
