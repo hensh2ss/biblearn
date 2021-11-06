@@ -7,6 +7,8 @@ Biblical Learning tools and data
 
 ## Data Sources
 * https://github.com/rcdilorenzo/ecce - Original Inspiration for Project
+* https://github.com/robertrouse/STEPBible-Data - STEP Biblical data
+
 
 ## Usage
 
