@@ -2,7 +2,8 @@
 requires = [
     "setuptools>=42",
     "wheel",
-    "poetry"
+    "poetry",
+    "pysword"
 ]
 build-backend = "setuptools.build_meta"
 
