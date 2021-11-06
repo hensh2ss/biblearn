@@ -7,3 +7,13 @@ requires = [
 build-backend = "setuptools.build_meta"
 
 [tool.poetry]
+name = "biblearn"
+version = "0.0.1"
+description = ""
+authors = ["seth.henshaw@gmail.com"]
+
+[tool.poetry.dependencies]
+python = "*"
+
+[tool.poetry.dev-dependencies]
+pytest = "^3.4"
