@@ -83,25 +83,69 @@ def createDataFrame(scrape_dir):
         book_dirs = glob.glob(os.path.join(scrape_dir, bible, "*.json"))
         for book_dir in tqdm(book_dirs):
             logger.debug(f"Processing Book: {book_dir}")
+            book_name = os.path.splitext(os.path.basename(book_dir))[0]
             with open(book_dir, "r") as f:
                 book_data = json.loads(f.read())
             for chapter in book_data:
                 tmp = pd.DataFrame(data=book_data[chapter])
-                tmp['book'] = os.path.splitext(os.path.basename(book_dir))[0]
+                tmp['verse'] = tmp['verse'].astype(int)
+                tmp['book'] = book_name
+
                 tmp['chapter'] = int(chapter)
                 tmp['version'] = bible
-            df = df.append(tmp)
+                df = df.append(tmp)
     print(df)
     return df
 
 
-def getVerseText(df, bible, book, chapter, verse):
-    return df[np.logical_and(np.logical_and(np.logical_and(df.book == bible, df.chapter == book), df.verse == chapter), verse)]
+def getVerseText(df, version, book, chapter, verse):
+    tmp = df[df.version == version]
+    logger.debug(f"Parseing by Version: \n{tmp}\n")
 
-def main(scrape_dir):
+    tmp = tmp[tmp.book == book]
+    logger.debug(f"Parseing by Book: \n{tmp}\n")
+    print(tmp.chapter.unique())
 
-    df = createDataFrame(scrape_dir)
+    tmp = tmp[tmp.chapter == chapter]
+    logger.debug(f"Parseing by Chapter: \n{tmp}\n")
 
+    return df[np.logical_and(np.logical_and(np.logical_and(df.version == version, df.book == book), df.chapter == chapter), df.verse == verse)]
+
+
+
+def main():
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--clean", default=False, action='store_true', help="Rebuild the dataframe")
+    parser.add_argument("-d", "--scrape-dir",
+                        default=os.path.abspath(os.path.expanduser("~/data/personal/bibleML/scrapedBibles")),
+                        help="Directory Containing the Scraped Bible Data")
+    parser.add_argument("-v", "--verbose", default=0, action='count', help="up log level")
+    args = parser.parse_args()
+
+    if args.verbose:
+        level = logging.DEBUG
+    else:
+        level = logging.INFO
+
+    logging.basicConfig(level=level)
+
+
+    mainDFFile = os.path.join(args.scrape_dir, "full_dataframe.csv")
+
+
+
+    if args.clean:
+        logger.info("Creating DataFrame from scratch")
+        df = createDataFrame(args.scrape_dir)
+        df.to_csv(mainDFFile)
+    else:
+        logger.info(f"Loading Dataframe from: {mainDFFile} ")
+        df = pd.read_csv(mainDFFile)
+
+    print(df.head())
+
+    # print(df[np.logical_and(df.bible == "niv")])
     print(getVerseText(df, "niv", "gen",1,1))
 
 
@@ -125,7 +169,8 @@ def main(scrape_dir):
     # print(freq[:,0])
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO)
-    scrapedDataPath = os.path.abspath(os.path.expanduser("~/data/personal/bibleML/scrapedBibles"))
-    # filePath = os.path.abspath(os.path.expanduser("~/data/personal/bibleML/KJV.json"))
-    main(scrapedDataPath)
+    # logging.basicConfig(level=logging.INFO)
+    # scrapedDataPath = os.path.abspath(os.path.expanduser("~/data/personal/bibleML/scrapedBibles"))
+    # # filePath = os.path.abspath(os.path.expanduser("~/data/personal/bibleML/KJV.json"))
+    # main(scrapedDataPath)
+    main()
