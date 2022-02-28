@@ -101,16 +101,18 @@ def main(jsonFile):
     print(getVerseText(df, "Genesis", 1, 1))
 
     allWords = []
-
+    lang = Language("en-kjv")
     for i in tqdm(df.index):
         row = df.iloc[i]
         allWords += row['normalized'].split(" ")
+        lang.addSentence(row['normalized'])
 
     print("# Total Words: {}".format(len(allWords)))
-    print("# Unique Words: {}".format(len(set(allWords))))
+    print("# Unique Words: {}".format(lang.n_words))
 
     cnt = Counter(allWords)
     freq = np.array(cnt.most_common())
+    print(freq[:,0])
 
 if __name__ == "__main__":
     filePath = os.path.abspath(os.path.expanduser("~/data/personal/bibleML/KJV.json"))
