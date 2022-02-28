@@ -9,6 +9,8 @@ Biblical Learning tools and data
 * https://github.com/rcdilorenzo/ecce - Original Inspiration for Project
 * https://github.com/robertrouse/STEPBible-Data - STEP Biblical data
 
+KJV Bible in JSON
+* https://github.com/renyuzhuo/KJV-JSON
 
 ## Usage
 
