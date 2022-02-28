@@ -93,8 +93,8 @@ def createDataFrame(scrape_dir):
 
                 tmp['chapter'] = int(chapter)
                 tmp['version'] = bible
+                tmp['normalized'] = tmp.text.apply(lambda t: normalizeVerse(t))
                 df = df.append(tmp)
-    print(df)
     return df
 
 
@@ -116,7 +116,8 @@ def getVerseText(df, version, book, chapter, verse):
 def main():
     import argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument("--clean", default=False, action='store_true', help="Rebuild the dataframe")
+    parser.add_argument("-rdf", "--rebuild-dataframe", default=False, action='store_true', help="Rebuild the dataframe")
+    parser.add_argument("-rl", "--rebuild-languages", default=False, action='store_true', help="Rebuild the Languages")
     parser.add_argument("-d", "--scrape-dir",
                         default=os.path.abspath(os.path.expanduser("~/data/personal/bibleML/scrapedBibles")),
                         help="Directory Containing the Scraped Bible Data")
@@ -135,7 +136,7 @@ def main():
 
 
 
-    if args.clean:
+    if args.rebuild_dataframe:
         logger.info("Creating DataFrame from scratch")
         df = createDataFrame(args.scrape_dir)
         df.to_csv(mainDFFile)
@@ -149,28 +150,36 @@ def main():
     print(getVerseText(df, "niv", "gen",1,1))
 
 
-    # df = createDataFrame(jsonFile)
-    # print(df.head())
+    freq = {}
+    for version in tqdm(df.version.unique()):
+        logger.info(f"Processing Language in Version {version}")
 
-    # print(getVerseText(df, "Genesis", 1, 1))
-    #
-    # allWords = []
-    # lang = Language("en-kjv")
-    # for i in tqdm(df.index):
-    #     row = df.iloc[i]
-    #     allWords += row['normalized'].split(" ")
-    #     lang.addSentence(row['normalized'])
-    #
-    # print("# Total Words: {}".format(len(allWords)))
-    # print("# Unique Words: {}".format(lang.n_words))
-    #
-    # cnt = Counter(allWords)
-    # freq = np.array(cnt.most_common())
-    # print(freq[:,0])
+        bv = df[df.version == version].reset_index()
+        lngCountFile = os.path.join(args.scrape_dir, f"{version}_words.json")
+
+        if args.rebuild_languages:
+            logger.info("Creating Language from scratch")
+            allWords = []
+            for i in tqdm(bv.index):
+                row = bv.iloc[i]
+                allWords += row['normalized'].split(" ")
+
+            logger.info("Creating Counter")
+            cnt = Counter(allWords)
+
+            with open(lngCountFile, "w") as f:
+                f.write(json.dumps(cnt.most_common()))
+
+            cnt = cnt.most_common()
+        else:
+            with open(lngCountFile, "r") as f:
+                cnt = json.loads(f.read())
+
+        freq[version] = np.array(cnt)
+
+    print(freq['niv'][:10,0])
+
+
 
 if __name__ == "__main__":
-    # logging.basicConfig(level=logging.INFO)
-    # scrapedDataPath = os.path.abspath(os.path.expanduser("~/data/personal/bibleML/scrapedBibles"))
-    # # filePath = os.path.abspath(os.path.expanduser("~/data/personal/bibleML/KJV.json"))
-    # main(scrapedDataPath)
     main()
